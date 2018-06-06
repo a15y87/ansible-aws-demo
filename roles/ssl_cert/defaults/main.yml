@@ -1,0 +1,6 @@
+---
+ssl_cert_domain: "{{ aws.root_domain }}"
+ssl_cert_account_key: "{{ letsencrypt_account_key }}"
+ssl_cert_account_email: "mail@{{ ssl_cert_domain }}"
+ssl_cert_directory: /srv/pki
+ssl_cert_san: ""

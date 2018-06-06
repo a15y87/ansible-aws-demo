@@ -1,0 +1,19 @@
+---
+cloud_config_base:
+  ubuntu: |
+    #cloud-config
+    runcmd:
+      - apt-get update
+      - apt-get -y install python
+cloud_config:
+  aws:
+    nginx: |
+      {{ cloud_config_base.ubuntu }}
+        - timedatectl set-timezone UTC
+        - 'hostnamectl set-hostname nginx-`ip addr show | grep "inet 10.15.\b" | awk '{print $2}' | cut -d/ -f1 | sed "/[0-9]\./s/\./-/g"`.ec2.internal'
+        - reboot
+    bastion: |
+      {{ cloud_config_base.ubuntu }}
+        - timedatectl set-timezone UTC
+        - 'hostnamectl set-hostname bastion-`ip addr show | grep "inet 10.15.\b" | awk '{print $2}' | cut -d/ -f1 | sed "/[0-9]\./s/\./-/g"`.ec2.internal'
+        - reboot

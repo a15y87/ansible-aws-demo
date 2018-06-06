@@ -1,0 +1,19 @@
+---
+- include: aws_ec2_key.yml
+  tags: [always]
+- include: aws_vpc.yml
+  tags: [always]
+- include: aws_facts.yml
+  tags: [always]
+- include: aws_security_group.yml
+  tags: [always]
+- include: aws_vpc_nat_gateway.yml
+  tags: [always]
+- include: aws_route53.yml
+  tags: [always]
+
+- include: nginx.yml
+  tags: [nginx]
+
+- include: bastion.yml
+  tags: [bastion]

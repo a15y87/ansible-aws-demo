@@ -1,0 +1,32 @@
+---
+- name: Provision bastion
+  ec2:
+    key_name: ansible
+    ec2_region: '{{ aws.region }}'
+    group: '{{ aws.environment }}-bastion'
+    assign_public_ip: yes
+    vpc_subnet_id: '{{ item }}'
+    instance_type: '{{ aws.ec2.bastion.instance_type }}'
+    image: '{{ ubuntu_bionic_image_id }}'
+    wait: true
+    exact_count: '{{ aws.ec2.bastion.count_per_az }}'
+    count_tag:
+      Name: bastion
+      environment: '{{ aws.environment }}'
+      count_az: '{{ item }}'
+    instance_tags:
+      Name: bastion
+      environment: '{{ aws.environment }}'
+      count_az: '{{ item }}'
+    monitoring: no
+    user_data: '{{ cloud_config.aws.bastion }}'
+  with_items: '{{ ec2_bastion_subnets }}'
+
+- name: get facts on all bastion instances
+  ec2_instance_facts:
+    region: '{{ aws.region }}'
+    filters:
+      instance-state-name: running
+      'tag:Name': bastion
+      'tag:environment': '{{ aws.environment }}'
+  register: bastion_gathered_facts

@@ -1,0 +1,8 @@
+---
+- include: install.yml
+  become: yes
+  tags: [nginx]
+
+- include: nginx.yml
+  become: yes
+  tags: [nginx]

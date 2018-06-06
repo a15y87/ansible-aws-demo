@@ -1,0 +1,46 @@
+- name: Get bionic AMI
+  ec2_ami_find:
+    name: 'ubuntu/images/hvm-ssd/ubuntu-binonic-18.04-amd64-server-*'
+    sort: name
+    sort_order: descending
+    sort_end: 1
+    region: '{{ aws.region }}'
+    virtualization_type: hvm
+    owner: '099720109477'
+  register: ubuntu_bionic_image
+
+- name: Set  ubuntu_bionic_image_id
+  set_fact:
+    ubuntu_bionic_image_id: '{{ ubuntu_bionic_image.results[0].ami_id }}'
+
+- name: filter nginx subnets
+  ec2_vpc_subnet_facts:
+    filters:
+      "tag:Name": '{{ item.name }}'
+      "tag:environment": '{{ aws.environment }}'
+    region: '{{ aws.region }}'
+  with_items: '{{ aws.vpc.core.subnet }}'
+  register: ec2_vpc_nginx_filter
+  when: item.name | match("^nginx-")
+
+- name: register nginx subnets
+  set_fact:
+    ec2_nginx_subnets: '{{ ec2_nginx_subnets  + [item.subnets[0].id] }}'
+  with_items: '{{ ec2_vpc_nginx_filter.results }}'
+  when: not item | skipped
+
+- name: filter bastion subnets
+  ec2_vpc_subnet_facts:
+    filters:
+      "tag:Name": '{{ item.name }}'
+      "tag:environment": '{{ aws.environment }}'
+    region: '{{ aws.region }}'
+  with_items: '{{ aws.vpc.core.subnet }}'
+  register: ec2_vpc_bastion_filter
+  when: item.name | match("^bastion-")
+
+- name: register bastion subnets
+  set_fact:
+    ec2_bastion_subnets: '{{ ec2_bastion_subnets  + [item.subnets[0].id] }}'
+  with_items: '{{ ec2_vpc_bastion_filter.results }}'
+  when: not item | skipped

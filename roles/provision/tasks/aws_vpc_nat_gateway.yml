@@ -1,0 +1,10 @@
+- name: Create new nat gateway for nginx subnets
+  ec2_vpc_nat_gateway:
+    state: present
+    subnet_id: '{{ item }}'
+    wait: yes
+    region: '{{ aws.region }}'
+    if_exist_do_not_create: true
+  with_items: '{{ ec2_nginx_subnets }}'
+  register: vpc_nat_gateway_nginx
+  when: not item | skipped

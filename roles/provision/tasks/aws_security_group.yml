@@ -1,0 +1,42 @@
+---
+- name: create nginx security group
+  ec2_group:
+     region: '{{ aws.region }}'
+     name: '{{ aws.environment }}-nginx'
+     description: '{{ aws.environment }}-nginx'
+     state: present
+     vpc_id: '{{ core_vpc_gathered_facts.vpc.id }}'
+     purge_rules: true
+     purge_rules_egress: true
+     rules_egress:
+       - proto: all
+         cidr_ip: '0.0.0.0/0'
+     rules:
+      - proto: tcp
+        from_port: 443
+        to_port: 443
+        cidr_ip: '0.0.0.0/0'
+      - proto: tcp
+        from_port: 22
+        to_port: 22
+        group_name: '{{ aws.environment }}-bastion'
+        group_desc: '{{ aws.environment }}-bastion'
+
+- name: create bastion security group
+  ec2_group:
+     region: '{{ aws.region }}'
+     name: '{{ aws.environment }}-bastion'
+     description: '{{ aws.environment }}-bastion'
+     state: present
+     vpc_id: '{{ core_vpc_gathered_facts.vpc.id }}'
+     purge_rules: true
+     purge_rules_egress: true
+     rules_egress:
+       - proto: all
+         cidr_ip: '0.0.0.0/0'
+     rules:
+      - proto: tcp
+        from_port: 22
+        to_port: 22
+        cidr_ip: '{{ bastion_access_prefix | default(0.0.0.0/0) }}'
+  register: registered_security_group_utility

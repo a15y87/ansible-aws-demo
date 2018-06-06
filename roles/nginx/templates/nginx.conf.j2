@@ -1,0 +1,16 @@
+# {{ ansible_managed }}
+
+user  {{ nginx_user }};
+worker_processes  {{nginx_worker_processes}};
+
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+
+    gzip on;
+    gzip_disable "msie6";
+    gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript application/javascript;
+    server_names_hash_bucket_size {{nginx_server_names_hash_bucket_size}};
+
+    include {{nginx_dir}}/conf.d/*.conf;
+}

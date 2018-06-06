@@ -1,0 +1,14 @@
+---
+
+- name: 'provision {{ aws.root_domain }} public zone'
+  route53_zone:
+    comment: "public {{ aws.root_domain }}"
+    zone: "{{ aws.root_domain }}"
+    state: present
+
+- name: 'provision {{ aws.root_domain }} private zone'
+  route53_zone:
+    zone: "{{ aws.root_domain }}"
+    vpc_id: "{{ core_vpc_gathered_facts.vpc.id }}"
+    region: "{{ aws.region }}"
+    comment: "private {{ aws.root_domain }}"

@@ -1,0 +1,8 @@
+---
+nginx_user: www-data
+nginx_dir: /etc/nginx
+nginx_sites_dir: "{{nginx_dir}}/sites-enabled"
+nginx_default_site: "{{nginx_sites_dir}}/default"
+nginx_delete_default_site: yes
+nginx_user: www-data
+nginx_worker_processes: auto

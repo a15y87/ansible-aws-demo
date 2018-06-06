@@ -1,0 +1,9 @@
+---
+- hosts: tag_Name_bastion
+  become: yes
+  roles:
+    - ssl_cert
+
+- hosts: tag_Name_nginx
+  roles:
+    - site

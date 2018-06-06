@@ -1,0 +1,7 @@
+#!/usr/bin/env python
+import os
+import sys
+try:
+   print(os.environ["ANSIBLE_VAULT_PASS"])
+except KeyError:
+   sys.exit(1)

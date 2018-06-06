@@ -1,0 +1,9 @@
+---
+
+- name: ansible ec2 key
+  ec2_key:
+    name: ansible
+    key_material: "{{ aws_ec2_key }}"
+    state: present
+    force: True
+    region: '{{ aws.region }}'

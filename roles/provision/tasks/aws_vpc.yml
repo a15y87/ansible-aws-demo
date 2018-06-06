@@ -1,0 +1,40 @@
+---
+- name: Provision core vpc
+  ec2_vpc_net:
+    state: present
+    cidr_block: '{{ aws.vpc.core.cidr_block }}'
+    tenancy: default
+    dns_hostnames: yes
+    dns_support: yes
+    region: '{{ aws.region }}'
+    name: '{{ aws.vpc.core.name }}'
+    tags:
+      Name: '{{ aws.vpc.core.name }}'
+      environment: "{{ aws.environment }}"
+  register: core_vpc_gathered_facts
+
+- name: register vpc internet_gateway
+  ec2_vpc_igw:
+    vpc_id: '{{ core_vpc_gathered_facts.vpc.id }}'
+    region: '{{ aws.region }}'
+    state: present
+    tags:
+      Name: '{{ aws.vpc.core.name }}'
+      environment: "{{ aws.environment }}"
+  register: core_vpc_igw_gathered_facts
+
+- name: set core_vpc_gathered_facts as fact
+  set_fact:
+    core_vpc_gathered_facts: '{{ core_vpc_gathered_facts }}'
+
+- name: Provision core subnets
+  ec2_vpc_subnet:
+    state: present
+    az: '{{ item.az }}'
+    cidr: '{{ item.cidr }}'
+    region: '{{ aws.region }}'
+    tags:
+      Name: '{{ item.name }}'
+      environment: "{{ aws.environment }}"
+    vpc_id: '{{ core_vpc_gathered_facts.vpc.id }}'
+  with_items: '{{ aws.vpc.core.subnet }}'

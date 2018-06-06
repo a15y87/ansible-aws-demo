@@ -1,0 +1,29 @@
+---
+
+- include: install.yml
+
+- name: Delete default site
+  action: file path={{nginx_default_site}} state=absent
+  when: nginx_delete_default_site
+  notify: nginx reload
+
+- name: Delete conf.d/default.conf
+  action: file path="{{nginx_dir}}/conf.d/default.conf" state=absent
+  when: nginx_delete_default_site
+  notify: nginx reload
+
+- name: Configure nginx
+  template: src=nginx.conf.j2 dest={{nginx_dir}}/nginx.conf
+  notify: nginx restart
+
+- name: Ensure the sites directory is exists
+  file: name={{nginx_sites_dir}} state=directory
+
+- name: Ensure that nginx is enabled
+  service: name=nginx enabled=yes
+
+- name: Generate Diffie-Hellman parameters
+  openssl_dhparam:
+    path: /etc/ssl/dhparams.pem
+    size: 4096
+  notify: nginx restart

@@ -1,0 +1,22 @@
+aws:
+  region: us-east-1
+  environment: production
+  root_domain: us-east-1.example.com
+  vpc:
+    core:
+      name: Production
+      cidr_block: '10.15.0.0/16'
+      subnet:
+        - { name: 'nginx-1a', az: 'us-east-1a', cidr: '10.15.10.0/24' }
+        - { name: 'bastion-1a', az: 'us-east-1a', cidr: '10.15.0.0/24' }
+  ec2:
+    nginx:
+      instance_type: t2.nano
+      count_per_az: 2
+      elb:
+        name: browser-lb
+      state: present
+    bastion:
+      instance_type: t2.nano
+      count_per_az: 1
+      state: present

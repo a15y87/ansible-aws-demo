@@ -1,0 +1,60 @@
+---
+
+- name: Certificates repository
+  file:
+    path: '{{ ssl_cert_directory }}/{{ ssl_cert_domain }}'
+    state: directory
+  with_items: "{{ ssl_cert_directory }}/{{ ssl_cert_domain }}"
+
+- name: Copy private key
+  copy:
+    content: '{{ ssl_cert_directory }}/{{ ssl_cert_domain }}/{{ ssl_cert_domain }}.pem'
+    dest: /etc/ssl/domain.key
+    mode: 0400
+
+- name: Generate an Certificate Signing Request
+   openssl_csr:
+    path: '{{ ssl_cert_directory }}/{{ ssl_cert_domain }}/{{ ssl_cert_domain }}.csr'
+    privatekey_path: '{{ ssl_cert_directory }}/{{ ssl_cert_domain }}/{{ ssl_cert_domain }}.pem'
+    common_name: '{{ ssl_cert_domain }}'
+    ocsp_must_staple: true
+    # subject_alt_name: TODO
+  
+- name: 'Create a challenge for {{ ssl_cert_domain }}'
+  letsencrypt:
+    account_key_src: '{{ ssl_cert_account_key }}'
+    account_email: '{{ ssl_cert_account_email }}'
+    src: '{{ ssl_cert_directory }}/{{ ssl_cert_domain }}/{{ ssl_cert_domain }}.csr'
+    cert: '{{ ssl_cert_directory }}/{{ ssl_cert_domain }}/{{ ssl_cert_domain }}.crt'
+    challenge: dns-01
+    acme_directory: https://acme-v01.api.letsencrypt.org/directory
+    remaining_days: 180
+  register: ssl_cert_challenge
+
+- name: 'Create TXT record for DNS-01 challenge'
+  route53:
+    zone: '{{ aws.root_domain }}'
+    record: "{{ ssl_cert_challenge.challenge_data['~ ssl_cert_domain ~']['dns-01'].record }}"
+    type: TXT
+    ttl: 60
+    value: "{{ ssl_cert_challenge.challenge_data['~ ssl_cert_domain ~']['dns-01'].resource_value }}"
+    when: ssl_cert_challenge is changed
+
+- name: 'Let the challenge be validated and retrieve the cert and intermediate certificate'
+  letsencrypt:
+    account_key_src: '{{ ssl_cert_account_key }}'
+    account_email: '{{ ssl_cert_account_email }}'
+    src: '{{ ssl_cert_directory }}/{{ ssl_cert_domain }}/{{ ssl_cert_domain }}.csr'
+    cert:  '{{ ssl_cert_directory }}/{{ ssl_cert_domain }}/{{ ssl_cert_domain }}.crt'
+    fullchain: '{{ ssl_cert_directory }}/{{ ssl_cert_domain }}/{{ ssl_cert_domain }}-fullchain.crt'
+    chain: '{{ ssl_cert_directory }}/{{ ssl_cert_domain }}/{{ ssl_cert_domain }}-intermediate.crt'
+    challenge: dns-01
+    acme_directory: https://acme-v01.api.letsencrypt.org/directory
+    remaining_days: 180
+    data: "{{ ssl_cert_challenge }}"
+
+- name: Load cert data
+  set_fact:
+    ssl_cert_data:  "{{ lookup('file', ssl_cert_directory ~ '/' ~ ssl_cert_domain ~ '/' ~ ssl_cert_domain ~  '.crt') }}"
+    ssl_cert_fullchain: "{{ lookup('file', ssl_cert_directory ~ '/' ~ ssl_cert_domain ~ '/' ~ ssl_cert_domain ~  '-fullchain.crt') }}"
+    ssl_cert_intermediate: "{{ lookup('file', ssl_cert_directory ~ '/' ~ ssl_cert_domain ~ '/' ~ ssl_cert_domain ~  '-intermediate.crt') }}"
