@@ -2,6 +2,6 @@
 import os
 import sys
 try:
-   print(os.environ["ANSIBLE_VAULT_PASS"])
+    print(os.environ["ANSIBLE_VAULT_PASS"])
 except KeyError:
-   sys.exit(1)
+    sys.exit(1)

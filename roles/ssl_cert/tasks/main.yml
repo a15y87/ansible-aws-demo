@@ -19,7 +19,7 @@
     common_name: '{{ ssl_cert_domain }}'
     ocsp_must_staple: true
     # subject_alt_name: TODO
-  
+
 - name: 'Create a challenge for {{ ssl_cert_domain }}'
   letsencrypt:
     account_key_src: '{{ ssl_cert_account_key }}'

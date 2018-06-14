@@ -37,7 +37,8 @@
     state: present
     region: '{{ aws.region }}'
     security_group_names: '{{ aws.environment }}-nginx'
-    wait: no
+    scheme: internet-facing
+    wait: yes
     subnets: '{{ ec2_utility_subnets }}'
     purge_subnets: yes
     listeners:
